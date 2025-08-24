@@ -18,3 +18,19 @@ Open a follow-up task/PR for implementation.
 ```
 
 See also: `AGENTS.md` for guardrails.
+
+## Docker
+
+A `Dockerfile` and `docker-compose.yml` are provided for local development.
+Build and start the stack with:
+
+```sh
+docker compose up --build
+```
+
+This spins up two services bound to localhost:
+
+- **app** – minimal Python runtime served on <http://localhost:8000> and mounts the project source.
+- **metrics** – VictoriaMetrics backend on <http://localhost:8428> storing data in the `vm-data` volume.
+
+Environment variables can be supplied via a `.env` file in this directory if needed.
