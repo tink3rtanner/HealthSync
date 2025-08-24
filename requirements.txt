@@ -1,2 +1,3 @@
 pytest
+matplotlib
 # requests is optional; vm_ingest falls back to urllib when unavailable
