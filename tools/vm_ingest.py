@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
+import json
 
 try:  # optional dependency
     import requests  # type: ignore
@@ -11,6 +12,7 @@ try:  # optional dependency
 except Exception:  # pragma: no cover - network-restricted envs
     HAVE_REQUESTS = False
 import urllib.request
+import urllib.parse
 
 from . import scanners
 
@@ -55,6 +57,22 @@ def send_to_vm(base_path: Path, base_url: str = "http://localhost:8428") -> None
         )
         with urllib.request.urlopen(req) as resp:
             resp.read()  # ensure request is made
+
+
+def read_metric(base_url: str, metric: str) -> float:
+    """Return the latest value for ``metric`` from VictoriaMetrics."""
+    if HAVE_REQUESTS:
+        resp = requests.get(f"{base_url}/api/v1/query", params={"query": metric})
+        resp.raise_for_status()
+        data = resp.json()
+    else:  # pragma: no cover - exercised when requests missing
+        url = f"{base_url}/api/v1/query?" + urllib.parse.urlencode({"query": metric})
+        with urllib.request.urlopen(url) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    results = data.get("data", {}).get("result", [])
+    if not results:
+        return float("nan")
+    return float(results[0]["value"][1])
 
 
 def main(argv: list[str] | None = None) -> None:
